@@ -1,0 +1,7 @@
+celery==5.4.0
+redis==5.2.1
+sqlalchemy==2.0.36
+psycopg2-binary==2.9.10
+pydantic-settings==2.6.1
+pgvector==0.3.6
+crewai>=0.86.0

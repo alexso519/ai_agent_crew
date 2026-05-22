@@ -1,0 +1,21 @@
+{
+  "name": "crewai-enterprise-control-center",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Enterprise control center for CrewAI multi-agent systems",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=@crewcc/web",
+    "dev:web": "npm run dev --workspace=@crewcc/web",
+    "build": "npm run build --workspace=@crewcc/web",
+    "build:web": "npm run build --workspace=@crewcc/web",
+    "lint": "npm run lint --workspace=@crewcc/web",
+    "typecheck": "npm run typecheck --workspace=@crewcc/web"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

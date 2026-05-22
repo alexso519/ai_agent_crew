@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck --workspace=@crewcc/web
+      - run: npm run test --workspace=@crewcc/web
+      - run: npm run build --workspace=@crewcc/web
+
+  api:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: crewcc
+          POSTGRES_PASSWORD: crewcc_secret
+          POSTGRES_DB: crewcc
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    env:
+      DATABASE_URL: postgresql+psycopg2://crewcc:crewcc_secret@localhost:5432/crewcc
+      REDIS_URL: redis://localhost:6379/0
+      JWT_SECRET_KEY: test-secret-key-for-ci-only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e packages/crew-runtime
+      - run: pip install -r apps/api/requirements.txt pytest httpx
+      - run: pip install -e packages/crew-runtime 2>/dev/null || pip install ./packages/crew-runtime
+      - working-directory: apps/api
+        run: |
+          export PYTHONPATH=src
+          alembic upgrade head || true
+          pytest tests/ -q
