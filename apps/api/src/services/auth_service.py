@@ -50,7 +50,7 @@ class AuthService:
             return
         self.register(
             RegisterRequest(
-                email="admin@crewcc.local",
+                email="admin@crewcc.com",
                 password="Admin123!ChangeMe",
                 full_name="System Administrator",
             ),

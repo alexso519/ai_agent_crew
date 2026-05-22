@@ -28,7 +28,7 @@ def upgrade() -> None:
         sa.Column("full_name", sa.String(255), nullable=True),
         sa.Column(
             "role",
-            sa.Enum("admin", "operator", "reviewer", "viewer", name="user_role"),
+            sa.String(50),
             nullable=False,
         ),
         sa.Column("is_active", sa.Boolean(), nullable=False, server_default="true"),
@@ -131,16 +131,11 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
 
-    execution_status = sa.Enum(
-        "pending", "running", "suspended", "failed", "success", name="execution_status"
-    )
-    execution_status.create(op.get_bind(), checkfirst=True)
-
     op.create_table(
         "executions",
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("workflow_id", sa.UUID(), nullable=False),
-        sa.Column("status", execution_status, nullable=False),
+        sa.Column("status", sa.String(50), nullable=False),
         sa.Column("checkpoint", sa.dialects.postgresql.JSONB(), nullable=False),
         sa.Column("error_message", sa.Text(), nullable=True),
         sa.Column("started_at", sa.DateTime(timezone=True), nullable=True),
@@ -171,18 +166,13 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
 
-    approval_status = sa.Enum(
-        "pending", "approved", "rejected", name="approval_status"
-    )
-    approval_status.create(op.get_bind(), checkfirst=True)
-
     op.create_table(
         "approvals",
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("execution_id", sa.UUID(), nullable=False),
         sa.Column("task_id", sa.UUID(), nullable=True),
         sa.Column("agent_id", sa.UUID(), nullable=True),
-        sa.Column("status", approval_status, nullable=False),
+        sa.Column("status", sa.String(50), nullable=False),
         sa.Column("ai_draft", sa.Text(), nullable=True),
         sa.Column("human_edit", sa.Text(), nullable=True),
         sa.Column("metadata", sa.dialects.postgresql.JSONB(), nullable=False),
@@ -221,15 +211,12 @@ def upgrade() -> None:
     op.create_index("ix_logs_tag", "logs", ["tag"])
     op.create_index("ix_logs_created_at", "logs", ["created_at"])
 
-    memory_type = sa.Enum("short_term", "long_term", "entity", name="memory_type")
-    memory_type.create(op.get_bind(), checkfirst=True)
-
     op.create_table(
         "memories",
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("agent_id", sa.UUID(), nullable=True),
         sa.Column("workflow_id", sa.UUID(), nullable=True),
-        sa.Column("memory_type", memory_type, nullable=False),
+        sa.Column("memory_type", sa.String(50), nullable=False),
         sa.Column("content", sa.Text(), nullable=True),
         sa.Column("entity_data", sa.dialects.postgresql.JSONB(), nullable=False),
         sa.Column("embedding", Vector(1536), nullable=True),
@@ -256,7 +243,3 @@ def downgrade() -> None:
     op.drop_table("workflows")
     op.drop_index("ix_users_email", table_name="users")
     op.drop_table("users")
-    sa.Enum(name="memory_type").drop(op.get_bind(), checkfirst=True)
-    sa.Enum(name="approval_status").drop(op.get_bind(), checkfirst=True)
-    sa.Enum(name="execution_status").drop(op.get_bind(), checkfirst=True)
-    sa.Enum(name="user_role").drop(op.get_bind(), checkfirst=True)
