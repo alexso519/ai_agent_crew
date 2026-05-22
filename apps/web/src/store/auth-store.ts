@@ -35,7 +35,10 @@ export const useAuthStore = create<AuthState>()(
         clearAuthCookie();
         set({ token: null, user: null, error: null });
       },
-      isAuthenticated: () => Boolean(get().token),
+      isAuthenticated: () => {
+        const state = get();
+        return !!state.token && !!state.user;
+      },
     }),
     {
       name: "crewcc_auth",

@@ -41,11 +41,13 @@ export function useAuth() {
     }
   }, [token, setLoading, setUser, setError, logout]);
 
+// 修正後的 useEffect，防止在載入過程中觸發無謂的 hydrate
   useEffect(() => {
-    if (token && !user) {
+    // 只有當「有 token」且「沒有 user 資料」且「不是正在載入中」時，才發起請求
+    if (token && !user && !isLoading) {
       void hydrateUser();
     }
-  }, [token, user, hydrateUser]);
+  }, [token, user, isLoading, hydrateUser]);
 
   const login = useCallback(
     async (credentials: LoginCredentials, redirectTo = "/control") => {
